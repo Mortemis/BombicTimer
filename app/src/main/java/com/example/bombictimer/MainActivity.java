@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     private int seconds = 0;
     private boolean isActive = false;
 
+    private final int TONE = ToneGenerator.TONE_PROP_BEEP2;
+
     String time = "00:00";
 
     private MediaPlayer plantedPlayer;
@@ -33,11 +35,11 @@ public class MainActivity extends AppCompatActivity {
     ToneGenerator beeper;
 
     @SuppressLint("HandlerLeak") //Static handler doesn't work here because of vibrator.
-    Handler handler = new Handler(){
-        public void handleMessage(Message msg){
-            if(msg.what == 0){
+            Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            if (msg.what == 0) {
                 Toast.makeText(MainActivity.this.getApplicationContext(), "Boom!", Toast.LENGTH_SHORT).show();
-                long[] pattern = { 0, 300, 200, 300, 200, 300};
+                long[] pattern = {0, 800};
                 Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 if (vibrator.hasVibrator()) {
                     vibrator.vibrate(pattern, -1);
@@ -55,19 +57,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         plantedPlayer = MediaPlayer.create(this, R.raw.planted);
-        explosionPlayer = MediaPlayer.create(this, R.raw.explosion);
+        explosionPlayer = MediaPlayer.create(this, R.raw.boom);
         beeper = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
     }
 
     public void startTimer(View view) {
-        plantedPlayer.start();
         if (!isActive) {
-            if(minutes != 0 || seconds != 0) {
+            plantedPlayer.start();
+            if (minutes != 0 || seconds != 0) {
                 timer.schedule(new TimerTask() {
                     int estimatedTime = minutes * 60 + seconds;
 
                     @Override
                     public void run() {
+                        beep();
                         estimatedTime--;
                         seconds = estimatedTime % 60;
                         minutes = estimatedTime / 60;
@@ -92,16 +95,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateTimerView() {
         String min;
-        if (minutes/10 == 0) {
-            min = "0"+minutes;
+        if (minutes / 10 == 0) {
+            min = "0" + minutes;
         } else {
-            min = ""+minutes;
+            min = "" + minutes;
         }
         String sec;
-        if (seconds/10 == 0) {
-            sec = "0"+seconds;
+        if (seconds / 10 == 0) {
+            sec = "0" + seconds;
         } else {
-            sec = ""+seconds;
+            sec = "" + seconds;
         }
         time = min + ":" + sec;
         handler.sendEmptyMessage(1);
@@ -110,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void incSeconds(View view) {
         if (!isActive) {
+            beep();
             seconds += secondsStep;
             if (seconds >= 60) {
                 seconds = 0;
@@ -123,9 +127,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void decSeconds(View view) {
         if (!isActive) {
+            beep();
             seconds -= secondsStep;
             if (seconds < 0) {
-                seconds = 60-secondsStep;
+                seconds = 60 - secondsStep;
                 if (minutes > 0) {
                     minutes--;
                 } else {
@@ -138,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void incMinutes(View view) {
         if (!isActive) {
+            beep();
             if (minutes <= 60) {
                 minutes++;
             }
@@ -147,10 +153,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void decMinutes(View view) {
         if (!isActive) {
+            beep();
             if (minutes > 0) {
                 minutes--;
             }
             updateTimerView();
         }
+    }
+
+
+    private void beep() {
+        beeper.startTone(TONE, 80);
     }
 }
