@@ -2,6 +2,9 @@ package com.example.bombictimer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.ToneGenerator;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
@@ -23,6 +26,11 @@ public class MainActivity extends AppCompatActivity {
     private boolean isActive = false;
 
     String time = "00:00";
+
+    private MediaPlayer plantedPlayer;
+    private MediaPlayer explosionPlayer;
+
+    ToneGenerator beeper;
 
     @SuppressLint("HandlerLeak") //Static handler doesn't work here because of vibrator.
     Handler handler = new Handler(){
@@ -46,9 +54,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        plantedPlayer = MediaPlayer.create(this, R.raw.planted);
+        explosionPlayer = MediaPlayer.create(this, R.raw.explosion);
+        beeper = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
     }
 
     public void startTimer(View view) {
+        plantedPlayer.start();
         if (!isActive) {
             if(minutes != 0 || seconds != 0) {
                 timer.schedule(new TimerTask() {
@@ -74,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private void onTimerAlarm() {
 
         handler.sendEmptyMessage(0);
+        explosionPlayer.start();
         isActive = false;
     }
 
